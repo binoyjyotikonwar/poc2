@@ -1,0 +1,53 @@
+# =============================================================================
+# OPTIONAL — Only if AZ2 must stay at 0 replicas (cost). Event-driven auto-scale.
+# Native GCP: Monitoring uptime check -> alert -> Pub/Sub -> Cloud Workflows.
+# RTO ~3-5 min (pod cold start). Prefer warm-minimal (file 3) for the money path.
+# =============================================================================
+
+# 1) Uptime check on AZ1 health (repeat per critical service)
+uptime_check:
+  display_name: "AZ1 ppmc health"
+  http_check: { path: "/actuator/health/liveness", port: 443, use_ssl: true }
+  monitored_resource:
+    host: "ppmc-api.lb1-pruinhlth-prd-az1-chbb3e.pru.intranet.asia"
+  period: 60s
+  timeout: 10s
+
+# 2) Alert policy (dampened) -> Pub/Sub notification channel
+alert_policy:
+  display_name: "AZ1 down -> trigger DR"
+  conditions:
+    - display_name: "AZ1 uptime failing"
+      condition_threshold:
+        filter: 'metric.type="monitoring.googleapis.com/uptime_check/check_passed" AND resource.label."host"="ppmc-api.lb1-pruinhlth-prd-az1-chbb3e.pru.intranet.asia"'
+        comparison: COMPARISON_LT
+        threshold_value: 1
+        duration: 180s          # dampening: sustained 3 min before firing
+  notification_channels: ["projects/pruinhlth-prod-prd-chbb3e-5648/notificationChannels/PUBSUB_prod-dr-control"]
+
+# 3) Cloud Workflows orchestrator (triggered by Pub/Sub push)
+#    steps: confirm AZ1 down (2 signals) -> scale AZ2 -> wait readiness -> notify -> audit
+workflow: |
+  main:
+    steps:
+      - confirm:
+          call: http.get
+          args: { url: "https://ppmc-api.lb1-pruinhlth-prd-az1-chbb3e.pru.intranet.asia/actuator/health/liveness" }
+          result: az1
+          # if az1 still healthy -> end (false positive guard)
+      - scale_az2:
+          call: gke.deployments.scale       # via pre-bound DR Workload Identity SA
+          args:
+            namespace: platform-domain-prd-dr
+            deployments: [claim-processing, pas, ppmc, crm, policy, payment]
+            replicas: 1
+      - wait_ready:
+          call: poll_health
+          args: { host_suffix: "lb1-pruinhlth-prd-az2-chbb3e.pru.intranet.asia" }
+      # stable endpoint (file 1/2) already routes to AZ2 once healthy — nothing to flip
+      - audit_notify:
+          call: log_and_alert
+          args: { event: "DR failover complete", region: "asia-south1", to: "AZ2" }
+
+# Guardrails: dampening (above), false-positive confirm step, cooldown before failback,
+# manual kill-switch (workflow input force=abort|force=failover), immutable Cloud Logging.

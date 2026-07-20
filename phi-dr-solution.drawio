@@ -1,0 +1,244 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram id="pattern" name="1 · Universal DR Pattern">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="t" value="Universal DR Pattern — applies IDENTICALLY to every PHI system (IL, PAS, FileNet, CRM, Samvaad, CHUB, PIXEL, PruServices, Buy-Online, D2C, Corp, Health App, Fyntune)" style="text;html=1;fontSize=14;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="16" width="1120" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- caller -->
+        <mxCell id="caller" value="Any caller&#10;(Apigee channel, another dual-AZ system,&#10;or a DIRECT-az1 caller: Health App / Fyntune)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eceff1;strokeColor=#607d8b;" vertex="1" parent="1">
+          <mxGeometry x="440" y="80" width="320" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- stable endpoint -->
+        <mxCell id="stable" value="① STABLE AZ-AGNOSTIC ENDPOINT&#10;&lt;service&gt;.lb1-pruinhlth-prd-&lt;proj&gt;.pru.intranet.asia  (no az1/az2)&#10;Regional Internal L4 passthrough NLB · failover backend · health-checked readiness path" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="180" width="520" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- az1 / az2 -->
+        <mxCell id="az1" value="AZ1 — ACTIVE&#10;nginx-ingress&#10;pods running" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="300" y="320" width="240" height="170" as="geometry"/>
+        </mxCell>
+        <mxCell id="az2" value="AZ2 — WARM STANDBY&#10;② min=1 (HTTP)&#10;Pub/Sub consumer GATED OFF&#10;until failover (active-passive)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="660" y="320" width="240" height="170" as="geometry"/>
+        </mxCell>
+
+        <!-- shared data -->
+        <mxCell id="data" value="SHARED STATEFUL LAYER — automatic zone-failover (RPO ≈ 0):  Cloud SQL REGIONAL · Redis STANDARD_HA · Pub/Sub" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="540" width="600" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- edges -->
+        <mxCell id="p_e1" style="endArrow=block;html=1;strokeColor=#333333;" edge="1" parent="1" source="caller" target="stable"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p_e2" value="active" style="endArrow=block;html=1;strokeColor=#3366cc;strokeWidth=2;fontColor=#3366cc;" edge="1" parent="1" source="stable" target="az1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p_e3" value="failover &lt;30s" style="endArrow=block;html=1;dashed=1;strokeColor=#cc0000;strokeWidth=2;fontColor=#cc0000;" edge="1" parent="1" source="stable" target="az2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p_e4" style="endArrow=block;html=1;strokeColor=#82b366;" edge="1" parent="1" source="az1" target="data"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="p_e5" style="endArrow=block;html=1;dashed=1;strokeColor=#82b366;" edge="1" parent="1" source="az2" target="data"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- fix steps panel -->
+        <mxCell id="steps" value="THE 5-STEP TEMPLATE (apply to every system)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;verticalAlign=top;fontStyle=1;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="300" y="640" width="600" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="s1" value="① Stable AZ-agnostic endpoint over az1+az2 ingress (L4 NLB failover)" style="text;html=1;align=left;" vertex="1" parent="1"><mxGeometry x="315" y="668" width="580" height="20" as="geometry"/></mxCell>
+        <mxCell id="s2" value="② Warm az2 (HTTP min=1); Pub/Sub consumers active-passive (gate off, scale on failover)" style="text;html=1;align=left;" vertex="1" parent="1"><mxGeometry x="315" y="694" width="580" height="20" as="geometry"/></mxCell>
+        <mxCell id="s3" value="③ Rewrite every -az1- in config → stable name (cross-system) or K8s service name (same cluster)" style="text;html=1;align=left;fontColor=#c62828;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="315" y="720" width="580" height="20" as="geometry"/></mxCell>
+        <mxCell id="s4" value="④ Repoint Apigee target servers → stable name" style="text;html=1;align=left;" vertex="1" parent="1"><mxGeometry x="315" y="746" width="580" height="20" as="geometry"/></mxCell>
+        <mxCell id="s5" value="⑤ Fix az2 secrets/bugs; add missing az2 plumbing (e.g. Samvaad az2 VPC connector)" style="text;html=1;align=left;" vertex="1" parent="1"><mxGeometry x="315" y="772" width="580" height="20" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="mesh" name="2 · Platform Solution Mesh">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="mt" value="Platform Solution Mesh — every system dual-AZ behind its own stable endpoint; on AZ1 loss the whole mesh shifts to AZ2 together" style="text;html=1;fontSize=14;fontStyle=1;align=left;" vertex="1" parent="1"><mxGeometry x="40" y="16" width="1400" height="26" as="geometry"/></mxCell>
+
+        <mxCell id="mleg" value="green = via Apigee (DR-safe) · RED = DIRECT az1 (bypasses Apigee) · blue = Pub/Sub · orange = az1 VPC connector · every box = az1+az2 behind a stable endpoint" style="text;html=1;align=left;fontStyle=2;" vertex="1" parent="1"><mxGeometry x="40" y="46" width="1400" height="20" as="geometry"/></mxCell>
+
+        <!-- Apigee -->
+        <mxCell id="m_apigee" value="APIGEE GATEWAY (zone-agnostic)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="500" y="110" width="240" height="420" as="geometry"/></mxCell>
+
+        <!-- IL hub -->
+        <mxCell id="m_il" value="INTEGRATION LAYER&#10;chbb3e · az1+az2&#10;+ stable endpoint" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#f9a825;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="820" y="260" width="220" height="120" as="geometry"/></mxCell>
+
+        <!-- channel callers via apigee -->
+        <mxCell id="m_ch" value="Channels: D2C(47) · Corp(144) · Buy-Online(131) · PruServices(125) · WhatsApp→Samvaad" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;" vertex="1" parent="1"><mxGeometry x="60" y="150" width="380" height="60" as="geometry"/></mxCell>
+
+        <!-- direct az1 callers -->
+        <mxCell id="m_health" value="Health App (137)&#10;rzg0c4 · az1+az2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffebee;strokeColor=#c62828;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="60" y="300" width="180" height="70" as="geometry"/></mxCell>
+        <mxCell id="m_fyn" value="FYNTUNE (distributed)&#10;own project · az1+az2&#10;DIRECT az1 → IL (NOT Apigee)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffebee;strokeColor=#c62828;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="60" y="400" width="180" height="80" as="geometry"/></mxCell>
+
+        <!-- downstream dual-AZ systems -->
+        <mxCell id="m_pas" value="PAS/BaNCS&#10;vpkcai · az1+az2&#10;(region DR RTO 1h)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;" vertex="1" parent="1"><mxGeometry x="1160" y="120" width="200" height="70" as="geometry"/></mxCell>
+        <mxCell id="m_fn" value="FileNet/BAW/ODM&#10;nhq8h1 · az1+az2&#10;(DB2-VM + AD SPOF)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;" vertex="1" parent="1"><mxGeometry x="1160" y="210" width="200" height="70" as="geometry"/></mxCell>
+        <mxCell id="m_crm" value="SimpleCRM&#10;rzg0c4 · az1+az2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;" vertex="1" parent="1"><mxGeometry x="1160" y="300" width="200" height="60" as="geometry"/></mxCell>
+        <mxCell id="m_pixel" value="PIXEL/DocDigit&#10;az1+az2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#f9a825;" vertex="1" parent="1"><mxGeometry x="1160" y="380" width="200" height="50" as="geometry"/></mxCell>
+        <mxCell id="m_chub" value="CHUB/Comms&#10;Pub/Sub + REST · az1+az2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;" vertex="1" parent="1"><mxGeometry x="1160" y="450" width="200" height="60" as="geometry"/></mxCell>
+        <mxCell id="m_samv" value="Samvaad&#10;f950ic · az1+az2&#10;(add az2 VPC connector)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;" vertex="1" parent="1"><mxGeometry x="1160" y="530" width="200" height="70" as="geometry"/></mxCell>
+
+        <!-- edges -->
+        <mxCell id="m1" style="endArrow=block;html=1;strokeColor=#2e7d32;strokeWidth=2;" edge="1" parent="1" source="m_ch" target="m_apigee"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="m2" value="IL APIs" style="endArrow=block;html=1;strokeColor=#2e7d32;strokeWidth=2;" edge="1" parent="1" source="m_apigee" target="m_il"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="m3" value="direct az1 (fix → stable)" style="endArrow=block;html=1;strokeColor=#c62828;strokeWidth=2;dashed=1;fontColor=#c62828;" edge="1" parent="1" source="m_health" target="m_il"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="m4" value="direct az1 (fix → stable)" style="endArrow=block;html=1;strokeColor=#c62828;strokeWidth=2;dashed=1;fontColor=#c62828;" edge="1" parent="1" source="m_fyn" target="m_il"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="m5" value="stable name" style="endArrow=block;html=1;strokeColor=#e65100;strokeWidth=2;" edge="1" parent="1" source="m_il" target="m_pas"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="m6" value="stable name" style="endArrow=block;html=1;strokeColor=#e65100;strokeWidth=2;" edge="1" parent="1" source="m_il" target="m_fn"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="m7" value="Apigee" style="endArrow=block;html=1;strokeColor=#2e7d32;strokeWidth=2;" edge="1" parent="1" source="m_il" target="m_crm"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="m8" style="endArrow=block;html=1;strokeColor=#f9a825;strokeWidth=2;" edge="1" parent="1" source="m_il" target="m_pixel"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="m9" value="Pub/Sub" style="endArrow=block;html=1;strokeColor=#1565c0;strokeWidth=2;" edge="1" parent="1" source="m_il" target="m_chub"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="m10" value="vpc-conn (add az2)" style="endArrow=block;html=1;strokeColor=#e65100;strokeWidth=2;dashed=1;fontColor=#e65100;" edge="1" parent="1" source="m_il" target="m_samv"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="mnote" value="On AZ1 loss: every stable endpoint steers to its AZ2 (warm) → the WHOLE mesh shifts together, no URL changes. Works only if ALL systems adopt the pattern (issue ⑩)." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=8;" vertex="1" parent="1"><mxGeometry x="500" y="560" width="540" height="50" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="soltable" name="3 · Per-system Solution Table">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="st" value="Per-system Solution — apply the 5-step template; columns show what each system needs" style="text;html=1;fontSize=14;fontStyle=1;align=left;" vertex="1" parent="1"><mxGeometry x="40" y="16" width="1300" height="26" as="geometry"/></mxCell>
+
+        <!-- header -->
+        <mxCell id="H0" value="System" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#37474f;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="56" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="H1" value="Project" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#37474f;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="220" y="56" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="H2" value="az1+az2" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#37474f;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="310" y="56" width="80" height="40" as="geometry"/></mxCell>
+        <mxCell id="H3" value="Reached via" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#37474f;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="390" y="56" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="H4" value="-az1- deps to rewrite" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#37474f;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="570" y="56" width="240" height="40" as="geometry"/></mxCell>
+        <mxCell id="H5" value="Pub/Sub" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#37474f;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="810" y="56" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="H6" value="Steps" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#37474f;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="900" y="56" width="110" height="40" as="geometry"/></mxCell>
+        <mxCell id="H7" value="Special note" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#37474f;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="1010" y="56" width="360" height="40" as="geometry"/></mxCell>
+
+        <!-- rows: y from 96, step 40 -->
+        <!-- IL -->
+        <mxCell id="R1a" value="Integration Layer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff8e1;" vertex="1" parent="1"><mxGeometry x="40" y="96" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R1b" value="chbb3e" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="220" y="96" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R1c" value="✅" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="310" y="96" width="80" height="40" as="geometry"/></mxCell>
+        <mxCell id="R1d" value="hub (Apigee + direct)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="390" y="96" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R1e" value="domainSuffix, filenet.baseUrl, pas.api.baseUrl" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffebee;" vertex="1" parent="1"><mxGeometry x="570" y="96" width="240" height="40" as="geometry"/></mxCell>
+        <mxCell id="R1f" value="pub+consume" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e3f2fd;" vertex="1" parent="1"><mxGeometry x="810" y="96" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R1g" value="①②③④⑤" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="900" y="96" width="110" height="40" as="geometry"/></mxCell>
+        <mxCell id="R1h" value="the hub — do first" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="1010" y="96" width="360" height="40" as="geometry"/></mxCell>
+
+        <!-- PAS -->
+        <mxCell id="R2a" value="PAS / TCS BaNCS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff3e0;" vertex="1" parent="1"><mxGeometry x="40" y="136" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R2b" value="vpkcai" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="220" y="136" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R2c" value="✅" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="310" y="136" width="80" height="40" as="geometry"/></mxCell>
+        <mxCell id="R2d" value="IL → direct" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="390" y="136" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R2e" value="bancsHost, pasProjectId host" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffebee;" vertex="1" parent="1"><mxGeometry x="570" y="136" width="240" height="40" as="geometry"/></mxCell>
+        <mxCell id="R2f" value="no (sync)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="810" y="136" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R2g" value="①②③" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="900" y="136" width="110" height="40" as="geometry"/></mxCell>
+        <mxCell id="R2h" value="zone-DR via pattern; cross-region RTO 1h = region-loss only" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff3e0;" vertex="1" parent="1"><mxGeometry x="1010" y="136" width="360" height="40" as="geometry"/></mxCell>
+
+        <!-- FileNet -->
+        <mxCell id="R3a" value="FileNet/BAW/ODM" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff3e0;" vertex="1" parent="1"><mxGeometry x="40" y="176" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R3b" value="nhq8h1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="220" y="176" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R3c" value="✅" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="310" y="176" width="80" height="40" as="geometry"/></mxCell>
+        <mxCell id="R3d" value="IL → direct" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="390" y="176" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R3e" value="cp4ba/filenet host" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffebee;" vertex="1" parent="1"><mxGeometry x="570" y="176" width="240" height="40" as="geometry"/></mxCell>
+        <mxCell id="R3f" value="no" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="810" y="176" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R3g" value="①③" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="900" y="176" width="110" height="40" as="geometry"/></mxCell>
+        <mxCell id="R3h" value="DB2-on-VM + on-prem AD SPOF → own HA/DR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff3e0;" vertex="1" parent="1"><mxGeometry x="1010" y="176" width="360" height="40" as="geometry"/></mxCell>
+
+        <!-- CRM -->
+        <mxCell id="R4a" value="SimpleCRM" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="40" y="216" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R4b" value="rzg0c4" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="220" y="216" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R4c" value="✅" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="310" y="216" width="80" height="40" as="geometry"/></mxCell>
+        <mxCell id="R4d" value="Apigee; IL → CRM" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="390" y="216" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R4e" value="crm.simple.baseUrl (-az1-rzg0c4)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffebee;" vertex="1" parent="1"><mxGeometry x="570" y="216" width="240" height="40" as="geometry"/></mxCell>
+        <mxCell id="R4f" value="consumer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e3f2fd;" vertex="1" parent="1"><mxGeometry x="810" y="216" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R4g" value="①②③④" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="900" y="216" width="110" height="40" as="geometry"/></mxCell>
+        <mxCell id="R4h" value="Pub/Sub consumer → active-passive" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff3e0;" vertex="1" parent="1"><mxGeometry x="1010" y="216" width="360" height="40" as="geometry"/></mxCell>
+
+        <!-- Samvaad -->
+        <mxCell id="R5a" value="Samvaad" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff3e0;" vertex="1" parent="1"><mxGeometry x="40" y="256" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R5b" value="f950ic" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="220" y="256" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R5c" value="✅" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="310" y="256" width="80" height="40" as="geometry"/></mxCell>
+        <mxCell id="R5d" value="Apigee in; egress out" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="390" y="256" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R5e" value="egress *.pru.intranet.asia hosts" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffebee;" vertex="1" parent="1"><mxGeometry x="570" y="256" width="240" height="40" as="geometry"/></mxCell>
+        <mxCell id="R5f" value="no" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="810" y="256" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R5g" value="①③⑤" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="900" y="256" width="110" height="40" as="geometry"/></mxCell>
+        <mxCell id="R5h" value="ADD az2 VPC connector (only az1 today)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff3e0;" vertex="1" parent="1"><mxGeometry x="1010" y="256" width="360" height="40" as="geometry"/></mxCell>
+
+        <!-- CHUB -->
+        <mxCell id="R6a" value="CHUB / Comms" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e3f2fd;" vertex="1" parent="1"><mxGeometry x="40" y="296" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R6b" value="—" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="220" y="296" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R6c" value="✅" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="310" y="296" width="80" height="40" as="geometry"/></mxCell>
+        <mxCell id="R6d" value="Pub/Sub + REST" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e3f2fd;" vertex="1" parent="1"><mxGeometry x="390" y="296" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R6e" value="REST host" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffebee;" vertex="1" parent="1"><mxGeometry x="570" y="296" width="240" height="40" as="geometry"/></mxCell>
+        <mxCell id="R6f" value="consumer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e3f2fd;" vertex="1" parent="1"><mxGeometry x="810" y="296" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R6g" value="①②③" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="900" y="296" width="110" height="40" as="geometry"/></mxCell>
+        <mxCell id="R6h" value="active-passive consumer" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="1010" y="296" width="360" height="40" as="geometry"/></mxCell>
+
+        <!-- PIXEL -->
+        <mxCell id="R7a" value="PIXEL / DocDigit" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff8e1;" vertex="1" parent="1"><mxGeometry x="40" y="336" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R7b" value="dp1d50" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="220" y="336" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R7c" value="✅" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="310" y="336" width="80" height="40" as="geometry"/></mxCell>
+        <mxCell id="R7d" value="via IL" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="390" y="336" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R7e" value="egress via VPC connector" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffebee;" vertex="1" parent="1"><mxGeometry x="570" y="336" width="240" height="40" as="geometry"/></mxCell>
+        <mxCell id="R7f" value="no" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="810" y="336" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R7g" value="①③" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="900" y="336" width="110" height="40" as="geometry"/></mxCell>
+        <mxCell id="R7h" value="fix az2=zone label; check az2 connector" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="1010" y="336" width="360" height="40" as="geometry"/></mxCell>
+
+        <!-- PruServices -->
+        <mxCell id="R8a" value="PruServices" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="40" y="376" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R8b" value="aa8b68" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="220" y="376" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R8c" value="✅" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="310" y="376" width="80" height="40" as="geometry"/></mxCell>
+        <mxCell id="R8d" value="Apigee" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="390" y="376" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R8e" value="(minimal)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="570" y="376" width="240" height="40" as="geometry"/></mxCell>
+        <mxCell id="R8f" value="pub" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="810" y="376" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R8g" value="④" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="900" y="376" width="110" height="40" as="geometry"/></mxCell>
+        <mxCell id="R8h" value="repoint Apigee targets → stable" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="1010" y="376" width="360" height="40" as="geometry"/></mxCell>
+
+        <!-- Buy-Online -->
+        <mxCell id="R9a" value="Buy-Online" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="40" y="416" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R9b" value="yoh0kt" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="220" y="416" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R9c" value="✅" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="310" y="416" width="80" height="40" as="geometry"/></mxCell>
+        <mxCell id="R9d" value="Apigee (IL APIs)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="390" y="416" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R9e" value="(none — via Apigee)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="570" y="416" width="240" height="40" as="geometry"/></mxCell>
+        <mxCell id="R9f" value="no" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="810" y="416" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R9g" value="④" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="900" y="416" width="110" height="40" as="geometry"/></mxCell>
+        <mxCell id="R9h" value="already zone-safe on IL hop" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="1010" y="416" width="360" height="40" as="geometry"/></mxCell>
+
+        <!-- D2C/Corp -->
+        <mxCell id="R10a" value="D2C + Corp sites" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="40" y="456" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R10b" value="yoh0kt" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="220" y="456" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R10c" value="✅" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="310" y="456" width="80" height="40" as="geometry"/></mxCell>
+        <mxCell id="R10d" value="Apigee" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="390" y="456" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R10e" value="(none — via Apigee)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="570" y="456" width="240" height="40" as="geometry"/></mxCell>
+        <mxCell id="R10f" value="no" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="810" y="456" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R10g" value="④" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="900" y="456" width="110" height="40" as="geometry"/></mxCell>
+        <mxCell id="R10h" value="already zone-safe on IL hop" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="1010" y="456" width="360" height="40" as="geometry"/></mxCell>
+
+        <!-- Health App -->
+        <mxCell id="R11a" value="Health App" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffebee;" vertex="1" parent="1"><mxGeometry x="40" y="496" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R11b" value="rzg0c4" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="220" y="496" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R11c" value="✅" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="310" y="496" width="80" height="40" as="geometry"/></mxCell>
+        <mxCell id="R11d" value="Apigee + DIRECT az1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffebee;" vertex="1" parent="1"><mxGeometry x="390" y="496" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R11e" value="own ingress + comms-svc + party-management" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffebee;" vertex="1" parent="1"><mxGeometry x="570" y="496" width="240" height="40" as="geometry"/></mxCell>
+        <mxCell id="R11f" value="no" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="810" y="496" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R11g" value="①③" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="900" y="496" width="110" height="40" as="geometry"/></mxCell>
+        <mxCell id="R11h" value="DIRECT-az1 caller → must use stable name" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffebee;" vertex="1" parent="1"><mxGeometry x="1010" y="496" width="360" height="40" as="geometry"/></mxCell>
+
+        <!-- Fyntune -->
+        <mxCell id="R12a" value="FYNTUNE (distributed)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffebee;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="536" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R12b" value="own proj" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="220" y="536" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R12c" value="✅" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;" vertex="1" parent="1"><mxGeometry x="310" y="536" width="80" height="40" as="geometry"/></mxCell>
+        <mxCell id="R12d" value="DIRECT az1 → IL (NOT Apigee)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffebee;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="390" y="536" width="180" height="40" as="geometry"/></mxCell>
+        <mxCell id="R12e" value="IL az1 link it calls + its own -az1- deps" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffebee;" vertex="1" parent="1"><mxGeometry x="570" y="536" width="240" height="40" as="geometry"/></mxCell>
+        <mxCell id="R12f" value="?" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="810" y="536" width="90" height="40" as="geometry"/></mxCell>
+        <mxCell id="R12g" value="①③ + full ②④⑤" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="900" y="536" width="110" height="40" as="geometry"/></mxCell>
+        <mxCell id="R12h" value="2nd direct-az1 caller: point at IL stable name; + own dual-AZ template" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffebee;" vertex="1" parent="1"><mxGeometry x="1010" y="536" width="360" height="40" as="geometry"/></mxCell>
+
+        <mxCell id="stnote" value="Steps: ① stable endpoint · ② warm az2 + active-passive Pub/Sub · ③ kill -az1- config · ④ repoint Apigee · ⑤ az2 secrets/plumbing.  Red = direct-az1 risk · Amber = per-system caveat · Green = already safe." style="text;html=1;align=left;fontStyle=2;" vertex="1" parent="1"><mxGeometry x="40" y="586" width="1330" height="24" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,84 @@
+<mxfile host="app.diagrams.net" version="24.0.0">
+  <diagram id="solmap" name="1 · Solution Connectivity (target state)">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="t" value="PHI DR — TARGET (solved) Connectivity: every link uses a STABLE AZ-agnostic name; each system is az1-active + az2-warm behind its own health-checked endpoint" style="text;html=1;fontSize=14;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="16" width="1500" height="26" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg" value="Every arrow = a stable name (no az1/az2). Green = via Apigee · teal = stable direct name · blue = Pub/Sub. On AZ1 loss the whole mesh shifts to az2 automatically — no URL changes." style="text;html=1;align=left;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="44" width="1500" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- Apigee -->
+        <mxCell id="apigee" value="APIGEE GATEWAY&#10;(zone-agnostic)&#10;targets repointed → stable names" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="500" y="120" width="220" height="380" as="geometry"/></mxCell>
+
+        <!-- IL hub -->
+        <mxCell id="il" value="INTEGRATION LAYER&#10;chbb3e · az1 active + az2 warm&#10;STABLE: *.lb1-pruinhlth-prd-chbb3e...&#10;Pub/Sub active-passive" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#f9a825;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="800" y="250" width="250" height="130" as="geometry"/></mxCell>
+
+        <!-- left callers -->
+        <mxCell id="ch" value="Channels: D2C(47)·Corp(144)·Buy-Online(131)·PruServices(125)·WhatsApp→Samvaad&#10;→ via Apigee (already zone-safe)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;" vertex="1" parent="1"><mxGeometry x="40" y="150" width="360" height="70" as="geometry"/></mxCell>
+        <mxCell id="health" value="Health App (137) · rzg0c4 · az1+az2&#10;FIXED: own ingress + comms-svc + party-management&#10;now use STABLE names (was direct -az1-)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00897b;" vertex="1" parent="1"><mxGeometry x="40" y="300" width="360" height="80" as="geometry"/></mxCell>
+        <mxCell id="fyn" value="FYNTUNE (distributed) · own project · az1+az2&#10;FIXED: now calls IL's STABLE name (was direct -az1-, bypassing Apigee)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00897b;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="40" y="410" width="360" height="80" as="geometry"/></mxCell>
+
+        <!-- right downstream -->
+        <mxCell id="pas" value="PAS/BaNCS · vpkcai · az1+az2&#10;STABLE: core-prod.lb1-...-vpkcai...&#10;(region DR RTO 1h = region loss only)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00897b;" vertex="1" parent="1"><mxGeometry x="1130" y="120" width="330" height="70" as="geometry"/></mxCell>
+        <mxCell id="fn" value="FileNet/BAW/ODM · nhq8h1 · az1+az2&#10;STABLE: cp4ba/filenet-...-nhq8h1...&#10;(DB2-VM + on-prem AD = own HA/DR)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00897b;" vertex="1" parent="1"><mxGeometry x="1130" y="210" width="330" height="70" as="geometry"/></mxCell>
+        <mxCell id="crm" value="SimpleCRM · rzg0c4 · az1+az2&#10;STABLE: crm-prod.lb1-...-rzg0c4... · Pub/Sub active-passive" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;" vertex="1" parent="1"><mxGeometry x="1130" y="300" width="330" height="60" as="geometry"/></mxCell>
+        <mxCell id="pixel" value="PIXEL/DocDigit · dp1d50 · az1+az2&#10;STABLE: digitisation-...-dp1d50..." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#f9a825;" vertex="1" parent="1"><mxGeometry x="1130" y="380" width="330" height="60" as="geometry"/></mxCell>
+        <mxCell id="chub" value="CHUB/Comms · az1+az2&#10;Pub/Sub + REST · consumer active-passive" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;" vertex="1" parent="1"><mxGeometry x="1130" y="460" width="330" height="60" as="geometry"/></mxCell>
+        <mxCell id="samv" value="Samvaad · f950ic · az1+az2&#10;ADD az2 VPC connector; egress → stable names" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00897b;" vertex="1" parent="1"><mxGeometry x="1130" y="540" width="330" height="60" as="geometry"/></mxCell>
+
+        <!-- data -->
+        <mxCell id="data" value="SHARED STATEFUL LAYER — automatic zone-failover (RPO ≈ 0):  Cloud SQL REGIONAL · Redis STANDARD_HA · Pub/Sub" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="500" y="560" width="560" height="60" as="geometry"/></mxCell>
+
+        <!-- edges -->
+        <mxCell id="e1" style="endArrow=block;html=1;strokeColor=#2e7d32;strokeWidth=2;" edge="1" parent="1" source="ch" target="apigee"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" value="IL APIs" style="endArrow=block;html=1;strokeColor=#2e7d32;strokeWidth=2;" edge="1" parent="1" source="apigee" target="il"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" value="IL stable name" style="endArrow=block;html=1;strokeColor=#00897b;strokeWidth=2;" edge="1" parent="1" source="health" target="il"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" value="IL stable name" style="endArrow=block;html=1;strokeColor=#00897b;strokeWidth=2;" edge="1" parent="1" source="fyn" target="il"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" value="stable name" style="endArrow=block;html=1;strokeColor=#00897b;strokeWidth=2;" edge="1" parent="1" source="il" target="pas"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" value="stable name" style="endArrow=block;html=1;strokeColor=#00897b;strokeWidth=2;" edge="1" parent="1" source="il" target="fn"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e7" value="Apigee/stable" style="endArrow=block;html=1;strokeColor=#2e7d32;strokeWidth=2;" edge="1" parent="1" source="il" target="crm"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e8" value="stable name" style="endArrow=block;html=1;strokeColor=#f9a825;strokeWidth=2;" edge="1" parent="1" source="il" target="pixel"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e9" value="Pub/Sub" style="endArrow=block;html=1;strokeColor=#1565c0;strokeWidth=2;" edge="1" parent="1" source="il" target="chub"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e10" value="vpc-conn az1+az2" style="endArrow=block;html=1;strokeColor=#00897b;strokeWidth=2;" edge="1" parent="1" source="il" target="samv"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e11" style="endArrow=block;html=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="il" target="data"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="detail" name="2 · Per-system Solution Detail">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="dt" value="Per-system Solution Detail — the 5-step template applied, system by system  (① stable endpoint · ② warm az2 + active-passive Pub/Sub · ③ kill -az1- config · ④ repoint Apigee · ⑤ az2 secrets/plumbing)" style="text;html=1;fontSize=13;fontStyle=1;align=left;" vertex="1" parent="1"><mxGeometry x="40" y="16" width="1520" height="40" as="geometry"/></mxCell>
+
+        <!-- Row 1 -->
+        <mxCell id="c_il" value="INTEGRATION LAYER — chbb3e (HUB, do first)&#10;① Stable: *.lb1-pruinhlth-prd-chbb3e.pru.intranet.asia&#10;② az1 active + az2 warm (min=1); Pub/Sub active-passive&#10;③ rewrite domainSuffix, filenet.baseUrl, pas.api.baseUrl&#10;④ repoint all 17 Apigee targets ⑤ fix Bug#1 (dr→UAT) + Bug#2 (mTLS cert)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#f9a825;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="40" y="70" width="500" height="150" as="geometry"/></mxCell>
+        <mxCell id="c_pas" value="PAS / TCS BaNCS — vpkcai&#10;① Stable: pas-services-prod.lb1-...-chbb3e; core-prod.lb1-...-vpkcai&#10;② az1 active + az2 warm; sync HTTP (no Pub/Sub)&#10;③ rewrite bancsHost, domainSuffix → stable&#10;NOTE: cross-region DR RTO 1h applies only to full-region loss" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00897b;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="560" y="70" width="500" height="150" as="geometry"/></mxCell>
+        <mxCell id="c_fn" value="FileNet / BAW / ODM — nhq8h1&#10;① Stable: cp4ba/filenet-...-nhq8h1.pru.intranet.asia&#10;② az1 active + az2 warm&#10;③ rewrite filenet/cp4ba host → stable&#10;⚠ DB2-on-VM + on-prem AD (DSG001/002) = own HA/DR (out of GKE scope)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00897b;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="1080" y="70" width="480" height="150" as="geometry"/></mxCell>
+
+        <!-- Row 2 -->
+        <mxCell id="c_crm" value="SimpleCRM — rzg0c4&#10;① Stable: crm-prod.lb1-pruinhlth-prd-rzg0c4.pru.intranet.asia&#10;② az1 active + az2; Pub/Sub consumer → active-passive&#10;③ rewrite crm.simple.baseUrl (was -az1-rzg0c4)&#10;④ repoint Apigee CRM target → stable" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="40" y="240" width="500" height="150" as="geometry"/></mxCell>
+        <mxCell id="c_samv" value="Samvaad — f950ic&#10;① Stable: samvaad-service-prod.lb1-...-f950ic&#10;② az1 active + az2 warm; inbound via Apigee&#10;⑤ ADD az2 VPC connector (only az1 today)&#10;③ egress targets (Hasura/CRM/PAS/FileNet) → stable names" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00897b;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="560" y="240" width="500" height="150" as="geometry"/></mxCell>
+        <mxCell id="c_chub" value="CHUB / Comms&#10;① Stable REST endpoint over az1+az2&#10;② az1 active + az2; Pub/Sub consumer → active-passive&#10;③ rewrite REST host → stable&#10;NOTE: also fed by Pub/Sub (self-healing)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e3f2fd;strokeColor=#1565c0;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="1080" y="240" width="480" height="150" as="geometry"/></mxCell>
+
+        <!-- Row 3 -->
+        <mxCell id="c_pixel" value="PIXEL / Doc Digitisation — dp1d50&#10;① Stable: digitisation-...-dp1d50.pru.intranet.asia&#10;② az1 active + az2; ⑤ confirm az2 VPC connector&#10;③ rewrite ingress host → stable&#10;NOTE: correct az2=zone label (not 'Delhi')" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff8e1;strokeColor=#f9a825;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="40" y="410" width="500" height="150" as="geometry"/></mxCell>
+        <mxCell id="c_health" value="Health App — rzg0c4  (was DIRECT -az1- caller ①)&#10;① Stable: healthapp-...-rzg0c4.pru.intranet.asia&#10;② az1 active + az2 warm&#10;③ own ingress + comms-svc + party-management → stable names&#10;RESULT: no more az1 link; Apigee + stable direct" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00897b;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="560" y="410" width="500" height="150" as="geometry"/></mxCell>
+        <mxCell id="c_fyn" value="FYNTUNE (distributed) — own project  (was DIRECT -az1-, bypassed Apigee ①)&#10;① Stable: its own L4 NLB failover VIP over az1+az2&#10;② az1 active + az2 warm&#10;③ point at IL's STABLE name (or az1-failover-DNS = no change); fix own -az1- deps&#10;④⑤ repoint any callers + az2 secrets" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e0f2f1;strokeColor=#00897b;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="1080" y="410" width="480" height="150" as="geometry"/></mxCell>
+
+        <!-- Row 4 -->
+        <mxCell id="c_pru" value="PruServices — aa8b68&#10;② az1 active + az2 (already dual-AZ)&#10;④ repoint Apigee targets → stable name&#10;RESULT: already zone-safe on the IL hop" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="40" y="580" width="500" height="130" as="geometry"/></mxCell>
+        <mxCell id="c_buy" value="Buy-Online (131) — yoh0kt&#10;Calls IL via Apigee (IL APIs) — already zone-safe&#10;④ repoint Apigee targets → stable&#10;No direct -az1- link (confirmed in LLD)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="560" y="580" width="500" height="130" as="geometry"/></mxCell>
+        <mxCell id="c_web" value="D2C (47) + Corp (144) — yoh0kt&#10;Call IL via Apigee — already zone-safe&#10;④ repoint Apigee targets → stable&#10;No direct -az1- link" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="1080" y="580" width="480" height="130" as="geometry"/></mxCell>
+
+        <mxCell id="dnote" value="Colour key:  teal = full 5-step template applied · green = Apigee-only (repoint) · yellow = via-IL / internal · blue = Pub/Sub-driven.   Rollout order: IL first → direct-az1 callers (Health App, Fyntune) → downstream → Apigee channels." style="text;html=1;align=left;fontStyle=2;" vertex="1" parent="1"><mxGeometry x="40" y="730" width="1520" height="40" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
